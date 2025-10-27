@@ -1,12 +1,12 @@
-"""
-Módulo para manejo de datos de sesiones de estudio.
-Maneja guardado/carga de datos desde base de datos SQLite.
-"""
-
 import sqlite3
 import os
 from datetime import datetime
 from typing import List, Dict, Optional
+
+"""
+Módulo para manejo de datos de sesiones de estudio.
+Maneja guardado/carga de datos desde base de datos SQLite.
+"""
 
 
 # Ruta del archivo de base de datos

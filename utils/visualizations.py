@@ -1,8 +1,3 @@
-"""
-Módulo para visualizaciones con Plotly.
-Incluye gráficos de progreso, distribución, y análisis de patrones.
-"""
-
 import plotly.graph_objects as go
 import plotly.express as px
 from typing import List, Dict
@@ -10,6 +5,10 @@ from collections import Counter
 from datetime import datetime
 import pandas as pd
 
+"""
+Módulo para visualizaciones con Plotly.
+Incluye gráficos de progreso, distribución, y análisis de patrones.
+"""
 
 def create_progress_chart(sessions: List[Dict]) -> go.Figure:
     """

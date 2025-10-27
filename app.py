@@ -1,12 +1,12 @@
-"""
-Study Tracker 100 Days - Streamlit App
-Aplicación para tracking de sesiones de estudio durante 100 días
-"""
-
 import streamlit as st
 from datetime import datetime
 from utils import data_manager, content_generator, visualizations
 import json
+
+"""
+Study Tracker 100 Days - Streamlit App
+Aplicación para tracking de sesiones de estudio durante 100 días
+"""
 
 # Configuración de la página
 st.set_page_config(

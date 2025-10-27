@@ -1,11 +1,10 @@
-"""
-Módulo para generación de contenido: posts sociales y artículos de Medium.
-"""
-
 import re
 from typing import Dict
 from datetime import datetime
 
+"""
+Módulo para generación de contenido: posts sociales y artículos de Medium.
+"""
 
 def format_date_spanish(date_str: str) -> str:
     """
