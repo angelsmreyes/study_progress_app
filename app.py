@@ -8,14 +8,6 @@ Study Tracker 100 Days - Streamlit App
 Aplicación para tracking de sesiones de estudio durante 100 días
 """
 
-# Configuración de la página
-st.set_page_config(
-    page_title="Study Tracker 100 Days",
-    page_icon="📚",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
-
 
 def main():
     """Función principal de la aplicación."""
