@@ -16,13 +16,13 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Inicialización de session_state
-if 'show_form' not in st.session_state:
-    st.session_state.show_form = False
-
 
 def main():
     """Función principal de la aplicación."""
+    
+    # Inicialización de session_state
+    if 'show_form' not in st.session_state:
+        st.session_state.show_form = False
     
     # Header principal
     st.markdown("""
