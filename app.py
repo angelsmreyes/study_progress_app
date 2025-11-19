@@ -488,8 +488,26 @@ def show_history(sessions):
             
             with col_btn1:
                 if st.button("📱 Generar Post Social", key=f"post_{session.get('id')}"):
-                    post = content_generator.generate_social_post(session)
-                    st.text_area("📝 Post para Redes Sociales:", post, height=200)
+                    post_es = content_generator.generate_social_post(session, language="es")
+                    post_en = content_generator.generate_social_post(session, language="en")
+                    
+                    tabs = st.tabs(["🇪🇸 Español", "🇺🇸 English"])
+                    
+                    with tabs[0]:
+                        st.text_area(
+                            "📝 Post para Redes Sociales (ES):",
+                            post_es,
+                            height=220,
+                            key=f"post_es_{session.get('id')}"
+                        )
+                    
+                    with tabs[1]:
+                        st.text_area(
+                            "📝 Social Post (EN):",
+                            post_en,
+                            height=220,
+                            key=f"post_en_{session.get('id')}"
+                        )
             
             with col_btn2:
                 if st.button("📄 Generar Artículo Medium", key=f"article_{session.get('id')}"):

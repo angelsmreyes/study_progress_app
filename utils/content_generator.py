@@ -38,12 +38,13 @@ def format_date_spanish(date_str: str) -> str:
         return date_str
 
 
-def generate_social_post(session: Dict) -> str:
+def generate_social_post(session: Dict, language: str = "es") -> str:
     """
     Generar post para redes sociales (Twitter/LinkedIn).
     
     Args:
         session: Datos de la sesión
+        language: Idioma del post ("es" o "en")
         
     Returns:
         str: Post formateado para redes sociales
@@ -58,7 +59,23 @@ def generate_social_post(session: Dict) -> str:
     # Truncar aprendizajes si son muy largos
     learnings_short = learnings[:200] + '...' if len(learnings) > 200 else learnings
     
-    post = f"""🚀 Día {day}/100 - Mejorando como Data Analyst
+    language = language.lower()
+    
+    if language == "en":
+        post = f"""🚀 Day {day}/100 - Leveling up as a Data Analyst
+
+📊 Category: {category}
+📚 Topic: {topic}
+⏱️ Duration: {duration}
+
+✨ Key learnings:
+{learnings_short}
+
+🏆 Daily win: {daily_win}
+
+#100DaysOfLearning #DataAnalytics #Physics #Python #SQL #DataScience"""
+    else:
+        post = f"""🚀 Día {day}/100 - Mejorando como Data Analyst
 
 📊 Categoría: {category}
 📚 Tema: {topic}
