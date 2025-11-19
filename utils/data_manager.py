@@ -9,8 +9,9 @@ Maneja guardado/carga de datos desde base de datos SQLite.
 """
 
 
-# Ruta del archivo de base de datos
-DB_FILE = "study_sessions.db"
+# Ruta absoluta del archivo de base de datos (independiente del cwd)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_FILE = os.path.abspath(os.path.join(BASE_DIR, "..", "study_sessions.db"))
 
 
 def get_db_connection():
