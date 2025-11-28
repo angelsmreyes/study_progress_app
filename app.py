@@ -15,6 +15,8 @@ def main():
     # Inicialización de session_state
     if 'show_form' not in st.session_state:
         st.session_state.show_form = False
+    if 'edit_session' not in st.session_state:
+        st.session_state.edit_session = None
     
     # Header principal
     st.markdown("""
@@ -62,7 +64,7 @@ def main():
     if page == "🏠 Dashboard":
         show_dashboard(sessions)
     elif page == "➕ Nueva Sesión":
-        show_new_session_form()
+        show_session_form()
     elif page == "📊 Análisis y Visualizaciones":
         show_analytics(sessions)
     elif page == "📝 Historial":
@@ -182,45 +184,67 @@ def show_dashboard(sessions):
     st.markdown("---")
     st.markdown("### 📈 Tu Progreso en el Tiempo")
     progress_chart = visualizations.create_progress_chart(sessions)
-    st.plotly_chart(progress_chart, use_container_width=True)
+    st.plotly_chart(progress_chart, width='stretch')
 
 
-def show_new_session_form():
-    """Mostrar formulario para nueva sesión."""
+def show_session_form():
+    """Mostrar formulario para nueva sesión o edición."""
     
-    st.markdown("## ➕ Registra tu Sesión de Estudio")
+    is_edit = st.session_state.edit_session is not None
+    session_to_edit = st.session_state.edit_session if is_edit else {}
     
-    st.info("""
-    📝 Completa este formulario para registrar tu sesión de estudio.
-    Todos los campos marcados con (*) son obligatorios.
-    """)
+    title = "✏️ Editar Sesión" if is_edit else "➕ Registra tu Sesión de Estudio"
+    st.markdown(f"## {title}")
     
-    with st.form("new_session_form", clear_on_submit=True):
-        # Fecha (auto-completada con hoy)
-        today = datetime.now().strftime('%Y-%m-%d')
-        date_input = st.date_input("Fecha (*)", value=datetime.now(), disabled=True)
+    if is_edit:
+        st.info(f"Editando sesión del día {session_to_edit.get('day')}")
+    else:
+        st.info("""
+        📝 Completa este formulario para registrar tu sesión de estudio.
+        Todos los campos marcados con (*) son obligatorios.
+        """)
+    
+    with st.form("session_form", clear_on_submit=not is_edit):
+        # Fecha
+        default_date = datetime.now()
+        if is_edit and session_to_edit.get('date'):
+            default_date = datetime.fromisoformat(session_to_edit.get('date'))
+            
+        date_input = st.date_input("Fecha (*)", value=default_date, disabled=False) # Permitir editar fecha si es necesario
         date_str = date_input.strftime('%Y-%m-%d')
         
         col1, col2 = st.columns(2)
         
         with col1:
             # Categoría
+            cat_index = 0
+            categories = ["Data Analysis", "Physics", "Statistics", "SQL", "Visualization", "Mixed"]
+            if is_edit and session_to_edit.get('category') in categories:
+                cat_index = categories.index(session_to_edit.get('category'))
+                
             category = st.selectbox(
                 "Categoría (*)",
-                ["Data Analysis", "Physics", "Statistics", "SQL", "Visualization", "Mixed"]
+                categories,
+                index=cat_index
             )
         
         with col2:
             # Dificultad
+            diff_options = ["Muy fácil", "Fácil", "Medio", "Difícil", "Muy difícil"]
+            diff_value = "Medio"
+            if is_edit and session_to_edit.get('difficulty') in diff_options:
+                diff_value = session_to_edit.get('difficulty')
+                
             difficulty = st.select_slider(
                 "Dificultad (*)",
-                options=["Muy fácil", "Fácil", "Medio", "Difícil", "Muy difícil"],
-                value="Medio"
+                options=diff_options,
+                value=diff_value
             )
         
         # Tema
         topic = st.text_input(
             "Tema estudiado (*)",
+            value=session_to_edit.get('topic', ''),
             placeholder="Ej: Window Functions en SQL, Análisis de Series Temporales, etc.",
             help="Describe brevemente el tema que estudiaste"
         )
@@ -228,6 +252,7 @@ def show_new_session_form():
         # Duración
         duration = st.text_input(
             "Duración (*)",
+            value=session_to_edit.get('duration', ''),
             placeholder="Ej: 2 horas, 45 minutos, 1h 30min",
             help="Formato libre: puedes escribir como prefieras (2 horas, 90 minutos, etc.)"
         )
@@ -235,6 +260,7 @@ def show_new_session_form():
         # Victoria del día
         daily_win = st.text_area(
             "🏆 Victoria del día (*)",
+            value=session_to_edit.get('daily_win', ''),
             placeholder="¿Qué logro específico conseguiste hoy? Ej: Finalmente entendí cómo funcionan las CTEs",
             help="El logro más importante o satisfactorio de esta sesión",
             height=80
@@ -243,6 +269,7 @@ def show_new_session_form():
         # Aprendizajes clave
         key_learnings = st.text_area(
             "✨ Aprendizajes clave",
+            value=session_to_edit.get('key_learnings', ''),
             placeholder="¿Qué aprendiste hoy? ¿Qué conceptos o ideas fueron las más importantes?",
             help="Principales aprendizajes de la sesión",
             height=100
@@ -251,21 +278,28 @@ def show_new_session_form():
         # Recursos utilizados
         resources = st.text_area(
             "📖 Recursos utilizados",
+            value=session_to_edit.get('resources', ''),
             placeholder="Links, libros, cursos, videos, artículos que usaste...",
             help="Recursos que consultaste durante la sesión",
             height=100
         )
         
         # Nivel de concentración
+        focus_options = ["Muy bajo", "Bajo", "Medio", "Alto", "Excelente"]
+        focus_value = "Medio"
+        if is_edit and session_to_edit.get('focus_level') in focus_options:
+            focus_value = session_to_edit.get('focus_level')
+            
         focus_level = st.select_slider(
             "Nivel de concentración",
-            options=["Muy bajo", "Bajo", "Medio", "Alto", "Excelente"],
-            value="Medio"
+            options=focus_options,
+            value=focus_value
         )
         
         # Obstáculos
         obstacles = st.text_area(
             "🤔 Obstáculos enfrentados",
+            value=session_to_edit.get('obstacles', ''),
             placeholder="¿Qué dificultades encontraste? (opcional)",
             help="Problemas, bloqueos o desafíos que enfrentaste",
             height=80
@@ -274,6 +308,7 @@ def show_new_session_form():
         # Próximos pasos
         next_steps = st.text_area(
             "🚀 Próximos pasos",
+            value=session_to_edit.get('next_steps', ''),
             placeholder="¿Qué planeas estudiar en tu próxima sesión? (opcional)",
             help="Lo que te gustaría revisar o aprender después",
             height=80
@@ -282,15 +317,17 @@ def show_new_session_form():
         # Aplicación práctica
         practical_application = st.text_area(
             "💼 Aplicación práctica",
+            value=session_to_edit.get('practical_application', ''),
             placeholder="¿Cómo puedes aplicar esto en tu trabajo como analista? (opcional)",
             help="Conexión entre lo aprendido y tu trabajo actual",
             height=80
         )
         
         # Botón de envío
+        btn_label = "💾 Actualizar Sesión" if is_edit else "💾 Guardar Sesión"
         submitted = st.form_submit_button(
-            "💾 Guardar Sesión",
-            use_container_width=True,
+            btn_label,
+            width='stretch',
             type="primary"
         )
         
@@ -319,25 +356,35 @@ def show_new_session_form():
                     'practical_application': practical_application if practical_application else ""
                 }
                 
-                # Guardar sesión
-                if data_manager.add_session(session_data):
-                    st.success("✅ ¡Sesión guardada exitosamente!")
-                    st.balloons()  # ¡Celebración!
+                if is_edit:
+                    # Mantener ID y otros campos
+                    session_data['id'] = session_to_edit['id']
+                    session_data['day'] = session_to_edit['day']
+                    session_data['created_at'] = session_to_edit['created_at']
                     
-                    # Mostrar resumen
-                    st.info(f"""
-                    📊 **Sesión registrada:**
-                    - Día {len(data_manager.load_sessions())}/100
-                    - Tema: {topic}
-                    - Categoría: {category}
-                    
-                    Puedes generar un post para redes sociales en la sección "📝 Historial"
-                    """)
-                    
-                    # Auto-redirigir al dashboard después de 2 segundos
-                    st.balloons()  # Más celebración
+                    if data_manager.save_session(session_data):
+                        st.success("✅ ¡Sesión actualizada exitosamente!")
+                        st.session_state.edit_session = None # Limpiar estado
+                        st.balloons()
+                    else:
+                        st.error("❌ Error al actualizar la sesión.")
                 else:
-                    st.error("❌ Error al guardar la sesión. Por favor, intenta de nuevo.")
+                    # Guardar nueva sesión
+                    if data_manager.add_session(session_data):
+                        st.success("✅ ¡Sesión guardada exitosamente!")
+                        st.balloons()
+                        
+                        # Mostrar resumen
+                        st.info(f"""
+                        📊 **Sesión registrada:**
+                        - Día {len(data_manager.load_sessions())}/100
+                        - Tema: {topic}
+                        - Categoría: {category}
+                        
+                        Puedes generar un post para redes sociales en la sección "📝 Historial"
+                        """)
+                    else:
+                        st.error("❌ Error al guardar la sesión. Por favor, intenta de nuevo.")
 
 
 def show_analytics(sessions):
@@ -355,13 +402,13 @@ def show_analytics(sessions):
     with col1:
         st.plotly_chart(
             visualizations.create_weekday_distribution(sessions),
-            use_container_width=True
+            width='stretch'
         )
     
     with col2:
         st.plotly_chart(
             visualizations.create_category_distribution(sessions),
-            use_container_width=True
+            width='stretch'
         )
     
     st.markdown("---")
@@ -371,29 +418,34 @@ def show_analytics(sessions):
     with col3:
         st.plotly_chart(
             visualizations.create_difficulty_pie(sessions),
-            use_container_width=True
+            width='stretch'
         )
     
     with col4:
         st.plotly_chart(
             visualizations.create_focus_pie(sessions),
-            use_container_width=True
+            width='stretch'
         )
     
     st.markdown("---")
     
     st.plotly_chart(
         visualizations.create_balance_chart(sessions),
-        use_container_width=True
+        width='stretch'
     )
     
     st.markdown("---")
     
     st.plotly_chart(
         visualizations.create_topic_frequency(sessions),
-        use_container_width=True
+        width='stretch'
     )
 
+
+def edit_session_callback(session):
+    """Callback para preparar la edición de una sesión."""
+    st.session_state.edit_session = session
+    st.session_state.page_selector = "➕ Nueva Sesión"
 
 def show_history(sessions):
     """Mostrar historial de sesiones con filtros."""
@@ -484,10 +536,18 @@ def show_history(sessions):
                 st.info(f"**💼 Aplicación:** {session.get('practical_application')}")
             
             # Botones de acción
-            col_btn1, col_btn2, col_btn3 = st.columns(3)
+            col_btn1, col_btn2, col_btn3, col_btn4 = st.columns(4)
             
             with col_btn1:
-                if st.button("📱 Generar Post Social", key=f"post_{session.get('id')}"):
+                st.button(
+                    "✏️ Editar", 
+                    key=f"edit_{session.get('id')}",
+                    on_click=edit_session_callback,
+                    args=(session,)
+                )
+
+            with col_btn2:
+                if st.button("📱 Post Social", key=f"post_{session.get('id')}"):
                     post_es = content_generator.generate_social_post(session, language="es")
                     post_en = content_generator.generate_social_post(session, language="en")
                     
@@ -509,8 +569,8 @@ def show_history(sessions):
                             key=f"post_en_{session.get('id')}"
                         )
             
-            with col_btn2:
-                if st.button("📄 Generar Artículo Medium", key=f"article_{session.get('id')}"):
+            with col_btn3:
+                if st.button("📄 Artículo Medium", key=f"article_{session.get('id')}"):
                     article = content_generator.generate_medium_article(session)
                     st.download_button(
                         label="📥 Descargar .md",
@@ -519,8 +579,8 @@ def show_history(sessions):
                         mime="text/markdown"
                     )
             
-            with col_btn3:
-                if st.button("🗑️ Eliminar Sesión", key=f"delete_{session.get('id')}"):
+            with col_btn4:
+                if st.button("🗑️ Eliminar", key=f"delete_{session.get('id')}"):
                     if data_manager.delete_session(session.get('id')):
                         st.success("✅ Sesión eliminada")
                         st.rerun()
@@ -667,7 +727,7 @@ def show_accountability_partner():
         
         # Día más productivo
         weekday_data = visualizations.create_weekday_distribution(sessions)
-        st.plotly_chart(weekday_data, use_container_width=True)
+        st.plotly_chart(weekday_data, width='stretch')
         
         st.info("""
         **💡 Consejo:** 

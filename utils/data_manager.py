@@ -1,96 +1,118 @@
-import sqlite3
 import os
 from datetime import datetime
 from typing import List, Dict, Optional
+import streamlit as st
+from supabase import create_client, Client
 
 """
 Módulo para manejo de datos de sesiones de estudio.
-Maneja guardado/carga de datos desde base de datos SQLite.
+Maneja guardado/carga de datos desde Supabase.
 """
 
-
-# Ruta absoluta del archivo de base de datos (independiente del cwd)
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_FILE = os.path.abspath(os.path.join(BASE_DIR, "..", "study_sessions.db"))
-
-
-def get_db_connection():
-    """
-    Crear conexión a la base de datos SQLite.
-    Crea la base de datos y la tabla si no existen.
-    
-    Returns:
-        sqlite3.Connection: Conexión a la base de datos
-    """
-    conn = sqlite3.connect(DB_FILE, check_same_thread=False)
-    conn.row_factory = sqlite3.Row  # Para acceder por nombre de columna
-    
-    # Crear tabla si no existe
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS sessions (
-            id TEXT PRIMARY KEY,
-            day INTEGER,
-            date TEXT NOT NULL,
-            category TEXT,
-            topic TEXT,
-            duration TEXT,
-            daily_win TEXT,
-            key_learnings TEXT,
-            resources TEXT,
-            difficulty TEXT,
-            focus_level TEXT,
-            obstacles TEXT,
-            next_steps TEXT,
-            practical_application TEXT,
-            created_at TEXT
-        )
-    """)
-    conn.commit()
-    return conn
-
+# Inicializar cliente de Supabase
+@st.cache_resource
+def init_supabase() -> Client:
+    try:
+        # Intentar obtener credenciales de st.secrets
+        # Soporta tanto formato [supabase] como variables directas
+        if "supabase" in st.secrets:
+            url = st.secrets["supabase"]["url"]
+            key = st.secrets["supabase"]["key"]
+        else:
+            url = st.secrets["SUPABASE_URL"]
+            key = st.secrets["SUPABASE_KEY"]
+            
+        return create_client(url, key)
+    except Exception as e:
+        st.error(f"Error al conectar con Supabase: {e}")
+        st.warning("Asegúrate de configurar .streamlit/secrets.toml correctamente.")
+        return None
 
 def load_sessions() -> List[Dict]:
     """
-    Cargar todas las sesiones desde la base de datos SQLite.
+    Cargar todas las sesiones desde Supabase.
     
     Returns:
         List[Dict]: Lista de sesiones, o lista vacía si no hay datos
     """
     try:
-        conn = get_db_connection()
-        cursor = conn.execute("SELECT * FROM sessions ORDER BY date ASC")
-        
-        sessions = []
-        for row in cursor:
-            session_dict = {
-                'id': row['id'],
-                'day': row['day'],
-                'date': row['date'],
-                'category': row['category'],
-                'topic': row['topic'],
-                'duration': row['duration'],
-                'daily_win': row['daily_win'],
-                'key_learnings': row['key_learnings'],
-                'resources': row['resources'],
-                'difficulty': row['difficulty'],
-                'focus_level': row['focus_level'],
-                'obstacles': row['obstacles'],
-                'next_steps': row['next_steps'],
-                'practical_application': row['practical_application'],
-                'created_at': row['created_at']
-            }
-            sessions.append(session_dict)
-        
-        conn.close()
-        return sessions
+        supabase = init_supabase()
+        if not supabase:
+            return []
+            
+        response = supabase.table("study_sessions").select("*").order("date", desc=False).execute()
+        return response.data
     except Exception as e:
         print(f"Error al cargar sesiones: {e}")
         return []
 
 
+def recalculate_days() -> bool:
+    """
+    Recalcular los números de día basados en la fecha.
+    Ordena por fecha y asigna día 1, 2, 3...
+    
+    Returns:
+        bool: True si se actualizó correctamente
+    """
+    try:
+        supabase = init_supabase()
+        if not supabase:
+            return False
+            
+        # Obtener todas las sesiones ordenadas por fecha
+        # Usamos created_at como tie-breaker para fechas iguales
+        response = supabase.table("study_sessions").select("id, day, date, created_at").order("date", desc=False).order("created_at", desc=False).execute()
+        sessions = response.data
+        
+        if not sessions:
+            return True
+            
+        updates = []
+        for idx, session in enumerate(sessions, 1):
+            # Si el día no coincide con el índice, necesita actualización
+            if session.get('day') != idx:
+                updates.append({
+                    "id": session['id'],
+                    "day": idx,
+                    # Necesitamos incluir otros campos requeridos si upsert falla sin ellos,
+                    # pero upsert parcial debería funcionar si el ID existe.
+                    # Para seguridad, solo actualizamos el campo day.
+                    # Supabase-py upsert suele requerir todos los campos NOT NULL si es un insert,
+                    # pero para update parcial es mejor usar .update() o upsert con ignore_duplicates=False?
+                    # La forma más limpia para updates masivos parciales es upsert con los datos cambiados.
+                })
+        
+        if updates:
+            print(f"🔄 Recalculando días para {len(updates)} sesiones...")
+            # Upsert en batch
+            # Nota: upsert requiere que pasemos los datos. Si pasamos solo ID y day, 
+            # y hay otras columnas not null sin default, podría fallar si lo trata como insert.
+            # Pero como los IDs existen, debería ser un update.
+            # Sin embargo, para evitar problemas con columnas not null faltantes,
+            # lo mejor es hacer updates individuales o un upsert con cuidado.
+            # Probemos upsert batch solo con id y day.
+            
+            # Estrategia segura: Updates individuales (más lento pero seguro) o upsert si estamos seguros.
+            # Dado que upsert podría borrar datos si no pasamos todo el objeto,
+            # vamos a iterar y hacer updates. Para 100 días no es tan grave.
+            # O mejor aún, upsert con todos los datos es pesado.
+            
+            # Optimización: Usar upsert solo con id y day funciona si la tabla permite nulls o tiene defaults,
+            # PERO si es un update, Postgres no valida nulls de otras columnas.
+            
+            for update in updates:
+                supabase.table("study_sessions").update({"day": update['day']}).eq("id", update['id']).execute()
+                
+        return True
+    except Exception as e:
+        print(f"Error al recalcular días: {e}")
+        return False
+
+
 def save_session(session_data: Dict) -> bool:
     """
-    Guardar una sesión en la base de datos SQLite.
+    Guardar una sesión en Supabase (insertar o actualizar).
     
     Args:
         session_data: Datos de la sesión a guardar
@@ -99,35 +121,19 @@ def save_session(session_data: Dict) -> bool:
         bool: True si se guardó correctamente, False en caso contrario
     """
     try:
-        conn = get_db_connection()
+        supabase = init_supabase()
+        if not supabase:
+            return False
+            
+        # Upsert maneja tanto insert como update si el ID existe
+        response = supabase.table("study_sessions").upsert(session_data).execute()
         
-        conn.execute("""
-            INSERT INTO sessions (
-                id, day, date, category, topic, duration, daily_win,
-                key_learnings, resources, difficulty, focus_level,
-                obstacles, next_steps, practical_application, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            session_data.get('id'),
-            session_data.get('day'),
-            session_data.get('date'),
-            session_data.get('category'),
-            session_data.get('topic'),
-            session_data.get('duration'),
-            session_data.get('daily_win'),
-            session_data.get('key_learnings'),
-            session_data.get('resources'),
-            session_data.get('difficulty'),
-            session_data.get('focus_level'),
-            session_data.get('obstacles'),
-            session_data.get('next_steps'),
-            session_data.get('practical_application'),
-            session_data.get('created_at')
-        ))
+        # Recalcular días para asegurar orden cronológico
+        # Esto es importante si se cambió la fecha
+        recalculate_days()
         
-        conn.commit()
-        conn.close()
-        return True
+        # Verificar si hubo respuesta exitosa (data no vacía)
+        return bool(response.data)
     except Exception as e:
         print(f"Error al guardar sesión: {e}")
         return False
@@ -147,10 +153,13 @@ def add_session(session_data: Dict) -> bool:
     sessions = load_sessions()
     session_data['day'] = len(sessions) + 1
     
-    # Generar ID único
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    session_data['id'] = f"session_{timestamp}"
-    session_data['created_at'] = datetime.now().isoformat()
+    # Generar ID único si no existe
+    if 'id' not in session_data:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        session_data['id'] = f"session_{timestamp}"
+    
+    if 'created_at' not in session_data:
+        session_data['created_at'] = datetime.now().isoformat()
     
     return save_session(session_data)
 
@@ -166,18 +175,14 @@ def delete_session(session_id: str) -> bool:
         bool: True si se eliminó correctamente
     """
     try:
-        conn = get_db_connection()
-        conn.execute("DELETE FROM sessions WHERE id = ?", (session_id,))
-        conn.commit()
-        conn.close()
+        supabase = init_supabase()
+        if not supabase:
+            return False
+            
+        supabase.table("study_sessions").delete().eq("id", session_id).execute()
         
         # Recalcular números de día
-        sessions = load_sessions()
-        for idx, session in enumerate(sessions, 1):
-            conn = get_db_connection()
-            conn.execute("UPDATE sessions SET day = ? WHERE id = ?", (idx, session['id']))
-            conn.commit()
-            conn.close()
+        recalculate_days()
         
         return True
     except Exception as e:
@@ -196,13 +201,14 @@ def get_session_by_id(session_id: str) -> Optional[Dict]:
         Optional[Dict]: Sesión encontrada o None
     """
     try:
-        conn = get_db_connection()
-        cursor = conn.execute("SELECT * FROM sessions WHERE id = ?", (session_id,))
-        row = cursor.fetchone()
-        conn.close()
+        supabase = init_supabase()
+        if not supabase:
+            return None
+            
+        response = supabase.table("study_sessions").select("*").eq("id", session_id).execute()
         
-        if row:
-            return dict(row)
+        if response.data:
+            return response.data[0]
         return None
     except Exception as e:
         print(f"Error al obtener sesión: {e}")
@@ -216,7 +222,16 @@ def get_sessions_count() -> int:
     Returns:
         int: Número total de sesiones
     """
-    return len(load_sessions())
+    try:
+        supabase = init_supabase()
+        if not supabase:
+            return 0
+        
+        # Usar count exacto es más eficiente
+        response = supabase.table("study_sessions").select("*", count="exact").execute()
+        return response.count if response.count is not None else len(response.data)
+    except:
+        return len(load_sessions())
 
 
 def get_current_streak() -> int:
@@ -318,4 +333,5 @@ def get_total_hours_studied() -> str:
         return f"{hours}h"
     else:
         return f"{minutes}m"
+
 

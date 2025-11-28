@@ -30,52 +30,6 @@ I've converted your app from JSON storage to **SQLite database**, which provides
    venv\Scripts\activate
    ```
 
-2. **Run the app:**
-   ```bash
-   streamlit run app.py
-   ```
-
-3. **First time running:**
-   - The app will automatically create `study_sessions.db`
-   - No setup needed! It's all automatic
-
-## 💾 How the Database Works
-
-### Database Structure
-
-The database has one table called `sessions` with these columns:
-
-```
-- id (TEXT) - Unique identifier for each session
-- day (INTEGER) - Day number (1-100)
-- date (TEXT) - Date of session (YYYY-MM-DD)
-- category (TEXT) - Category of study
-- topic (TEXT) - Topic studied
-- duration (TEXT) - Duration of session
-- daily_win (TEXT) - Achievement of the day
-- key_learnings (TEXT) - Key learnings
-- resources (TEXT) - Resources used
-- difficulty (TEXT) - Difficulty level
-- focus_level (TEXT) - Focus level
-- obstacles (TEXT) - Obstacles faced
-- next_steps (TEXT) - Next steps
-- practical_application (TEXT) - Practical application
-- created_at (TEXT) - Creation timestamp
-```
-
-### Functions Available
-
-All these functions work the same way as before:
-
-- `load_sessions()` - Get all sessions
-- `add_session(data)` - Add a new session
-- `delete_session(session_id)` - Delete a session
-- `get_session_by_id(session_id)` - Get specific session
-- `get_sessions_count()` - Count sessions
-- `get_current_streak()` - Calculate current streak
-- `get_days_since_last_study()` - Days without studying
-- `get_total_hours_studied()` - Total hours studied
-
 ## 🔧 Advanced Options
 
 ### Option 1: View Database with DB Browser
@@ -113,23 +67,6 @@ with open('study_sessions.json', 'r') as f:
 
 # Connect to database
 conn = sqlite3.connect('study_sessions.db')
-conn.row_factory = sqlite3.Row
-
-# Insert data
-for session in sessions:
-    conn.execute("""
-        INSERT INTO sessions VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (
-        session.get('id'),
-        session.get('day'),
-        session.get('date'),
-        session.get('category'),
-        session.get('topic'),
-        session.get('duration'),
-        session.get('daily_win'),
-        session.get('key_learnings'),
-        session.get('resources'),
-        session.get('difficulty'),
         session.get('focus_level'),
         session.get('obstacles'),
         session.get('next_steps'),
