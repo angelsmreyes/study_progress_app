@@ -16,11 +16,11 @@ def init_supabase() -> Client:
         # Intentar obtener credenciales de st.secrets
         # Soporta tanto formato [supabase] como variables directas
         if "supabase" in st.secrets:
-            url = st.secrets["supabase"]["url"]
-            key = st.secrets["supabase"]["key"]
+            url = st.secrets["supabase"]["DB_URL"]
+            key = st.secrets["supabase"]["DB_TOKEN"]
         else:
-            url = st.secrets["SUPABASE_URL"]
-            key = st.secrets["SUPABASE_KEY"]
+            url = st.secrets["DB_URL"]
+            key = st.secrets["DB_TOKEN"]
             
         return create_client(url, key)
     except Exception as e:
