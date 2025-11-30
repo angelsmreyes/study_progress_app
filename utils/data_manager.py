@@ -291,11 +291,31 @@ def get_days_since_last_study() -> int:
     sessions_sorted = sorted(sessions, key=lambda x: x.get('date', ''), reverse=True)
     last_study_date = sessions_sorted[0].get('date')
     
-    from datetime import date
+    from datetime import date, datetime, timedelta
     today = date.today()
     last_date = datetime.fromisoformat(last_study_date).date()
     
-    return (today - last_date).days
+    diff = (today - last_date).days
+    
+    # Si hay 1 día de diferencia, verificar si fue una sesión reciente (timezone issue)
+    if diff == 1:
+        try:
+            # Intentar obtener created_at para verificar si fue hace poco
+            created_at_str = sessions_sorted[0].get('created_at')
+            if created_at_str:
+                created_at = datetime.fromisoformat(created_at_str)
+                # Si created_at no tiene timezone, asumir que es compatible con datetime.now()
+                # (ambos UTC o ambos local server time)
+                now = datetime.now()
+                
+                # Si la sesión fue creada hace menos de 12 horas, contarla como "hoy"
+                if (now - created_at).total_seconds() < 12 * 3600:
+                    return 0
+        except Exception as e:
+            print(f"Error verificando created_at: {e}")
+            pass
+            
+    return diff
 
 
 def get_total_hours_studied() -> str:
