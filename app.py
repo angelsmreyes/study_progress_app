@@ -76,28 +76,28 @@ def main():
 def show_dashboard(sessions):
     """Show main dashboard with metrics and summary."""
     
-    st.markdown("## 🎯 Dashboard Principal")
+    st.markdown("## 🎯 Main Dashboard")
     
     if not sessions:
-        # Estado inicial sin sesiones
+        # Initial state without sessions
         st.info("""
-        👋 ¡Hola! Bienvenido a tu Study Tracker.
+        👋 Hello! Welcome to your Study Tracker.
         
-        Este es tu espacio para documentar tu aprendizaje durante los próximos 100 días.
-        Desde análisis de datos hasta física, aquí podrás llevar un registro completo de tu progreso.
+        This is your space to document your learning during the next 100 days.
+        From data analysis to physics, here you can keep a complete record of your progress.
         
-        **Para comenzar:**
-        1. Haz clic en "➕ Nueva Sesión" en el menú lateral
-        2. Registra tu primera sesión de estudio
-        3. ¡Comienza tu desafío!
+        **To start:**
+        1. Click on "➕ New Session" in the sidebar
+        2. Register your first study session
+        3. Start your challenge!
         """)
         
         st.markdown("""
         <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
                     padding: 2rem; border-radius: 10px; text-align: center; margin-top: 2rem;'>
-            <h2 style='color: white;'>🏆 ¡Vamos a completar este desafío!</h2>
+            <h2 style='color: white;'>🏆 Let's complete this challenge!</h2>
             <p style='color: white; font-size: 1.2rem;'>
-                Cada día cuenta. Cada sesión te acerca a tu meta.
+                Each day counts. Each session brings you closer to your goal.
             </p>
         </div>
         """, unsafe_allow_html=True)
@@ -111,26 +111,26 @@ def show_dashboard(sessions):
     progress_percent = (total_sessions / 100 * 100) if total_sessions <= 100 else 100
     
     with col1:
-        st.metric("📊 Días Completados", f"{total_sessions}/100", f"{progress_percent:.1f}%")
+        st.metric("📊 Days Completed", f"{total_sessions}/100", f"{progress_percent:.1f}%")
     
     with col2:
         streak = data_manager.get_current_streak()
-        st.metric("🔥 Racha Actual", f"{streak} días")
+        st.metric("🔥 Current Streak", f"{streak} days")
     
     with col3:
         total_hours = data_manager.get_total_hours_studied()
-        st.metric("⏱️ Total Estudiado", total_hours)
+        st.metric("⏱️ Total Studied", total_hours)
     
     with col4:
         days_since = data_manager.get_days_since_last_study()
         if days_since == 0:
-            st.metric("✅ Último Estudio", "Hoy")
+            st.metric("✅ Last Study", "Today")
         else:
-            st.metric("⏰ Último Estudio", f"{days_since} día(s)")
+            st.metric("⏰ Last Study", f"{days_since} day(s)")
     
     st.markdown("---")
     
-    # Alertas y feedback
+    # Alerts and feedback
     if total_sessions > 0:
         days_since = data_manager.get_days_since_last_study()
         
