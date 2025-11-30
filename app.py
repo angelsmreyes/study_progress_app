@@ -230,96 +230,96 @@ def show_session_form():
         
         with col2:
             # Dificultad
-            diff_options = ["Muy fácil", "Fácil", "Medio", "Difícil", "Muy difícil"]
-            diff_value = "Medio"
+            diff_options = ["Easy", "Medium", "Hard", "Very Hard"]
+            diff_value = "Medium"
             if is_edit and session_to_edit.get('difficulty') in diff_options:
                 diff_value = session_to_edit.get('difficulty')
                 
             difficulty = st.select_slider(
-                "Dificultad (*)",
+                "Difficulty (*)",
                 options=diff_options,
                 value=diff_value
             )
         
         # Tema
         topic = st.text_input(
-            "Tema estudiado (*)",
+            "Topic studied (*)",
             value=session_to_edit.get('topic', ''),
-            placeholder="Ej: Window Functions en SQL, Análisis de Series Temporales, etc.",
-            help="Describe brevemente el tema que estudiaste"
+            placeholder="Ej: Window Functions in SQL, Time Series Analysis, etc.",
+            help="Briefly describe the topic you studied"
         )
         
-        # Duración
+        # Duration
         duration = st.text_input(
-            "Duración (*)",
+            "Duration (*)",
             value=session_to_edit.get('duration', ''),
-            placeholder="Ej: 2 horas, 45 minutos, 1h 30min",
-            help="Formato libre: puedes escribir como prefieras (2 horas, 90 minutos, etc.)"
+            placeholder="Ej: 2 hours, 45 minutes, 1h 30min",
+            help="Free format: you can write as you prefer (2 hours, 90 minutes, etc.)"
         )
         
-        # Victoria del día
+        # Daily win
         daily_win = st.text_area(
-            "🏆 Victoria del día (*)",
+            "Daily win (*)",
             value=session_to_edit.get('daily_win', ''),
-            placeholder="¿Qué logro específico conseguiste hoy? Ej: Finalmente entendí cómo funcionan las CTEs",
-            help="El logro más importante o satisfactorio de esta sesión",
+            placeholder="What specific achievement did you get today? Ej: Finally understood how CTEs work",
+            help="The most important or satisfying achievement of this session",
             height=80
         )
         
-        # Aprendizajes clave
+        # Key learnings
         key_learnings = st.text_area(
-            "✨ Aprendizajes clave",
+            "Key learnings",
             value=session_to_edit.get('key_learnings', ''),
-            placeholder="¿Qué aprendiste hoy? ¿Qué conceptos o ideas fueron las más importantes?",
-            help="Principales aprendizajes de la sesión",
+            placeholder="What did you learn today? What concepts or ideas were the most important?",
+            help="The most important or satisfying achievement of this session",
             height=100
         )
         
-        # Recursos utilizados
+        # Resources used
         resources = st.text_area(
-            "📖 Recursos utilizados",
+            "Resources used",
             value=session_to_edit.get('resources', ''),
-            placeholder="Links, libros, cursos, videos, artículos que usaste...",
-            help="Recursos que consultaste durante la sesión",
+            placeholder="Links, books, courses, videos, articles you used...",
+            help="Resources you consulted during the session",
             height=100
         )
         
-        # Nivel de concentración
+        # Focus level
         focus_options = ["Muy bajo", "Bajo", "Medio", "Alto", "Excelente"]
         focus_value = "Medio"
         if is_edit and session_to_edit.get('focus_level') in focus_options:
             focus_value = session_to_edit.get('focus_level')
             
         focus_level = st.select_slider(
-            "Nivel de concentración",
+            "Focus level",
             options=focus_options,
             value=focus_value
         )
         
-        # Obstáculos
+        # Obstacles
         obstacles = st.text_area(
-            "🤔 Obstáculos enfrentados",
+            "Obstacles faced",
             value=session_to_edit.get('obstacles', ''),
-            placeholder="¿Qué dificultades encontraste? (opcional)",
-            help="Problemas, bloqueos o desafíos que enfrentaste",
+            placeholder="What difficulties did you face? (optional)",
+            help="Problems, blocks or challenges you faced",
             height=80
         )
         
         # Next steps
         next_steps = st.text_area(
-            "🚀 Next steps",
+            "Next steps",
             value=session_to_edit.get('next_steps', ''),
-            placeholder="¿Qué planeas estudiar en tu próxima sesión? (optional)",
+            placeholder="What do you plan to study in your next session? (optional)",
             help="What you want to review or learn next",
             height=80
         )
         
-        # Aplicación práctica
+        # Practical application
         practical_application = st.text_area(
-            "💼 Aplicación práctica",
+            "Practical application",
             value=session_to_edit.get('practical_application', ''),
-            placeholder="¿Cómo puedes aplicar esto en tu trabajo como analista? (opcional)",
-            help="Conexión entre lo aprendido y tu trabajo actual",
+            placeholder="How can you apply this in your work as an analyst? (optional)",
+            help="Connection between what you learned and your current job",
             height=80
         )
         
@@ -363,40 +363,40 @@ def show_session_form():
                     session_data['created_at'] = session_to_edit['created_at']
                     
                     if data_manager.save_session(session_data):
-                        st.success("✅ ¡Sesión actualizada exitosamente!")
+                        st.success("✅ ¡Session updated successfully!")
                         st.session_state.edit_session = None # Limpiar estado
                         st.balloons()
                     else:
-                        st.error("❌ Error al actualizar la sesión.")
+                        st.error("❌ Error updating session.")
                 else:
                     # Guardar nueva sesión
                     if data_manager.add_session(session_data):
-                        st.success("✅ ¡Sesión guardada exitosamente!")
+                        st.success("✅ ¡Session saved successfully!")
                         st.balloons()
                         
-                        # Mostrar resumen
+                        # Show summary
                         st.info(f"""
-                        📊 **Sesión registrada:**
-                        - Día {len(data_manager.load_sessions())}/100
-                        - Tema: {topic}
-                        - Categoría: {category}
+                        📊 **Session registered:**
+                        - Day {len(data_manager.load_sessions())}/100
+                        - Topic: {topic}
+                        - Category: {category}
                         
-                        Puedes generar un post para redes sociales en la sección "📝 Historial"
+                        You can generate a post for social media in the "📝 History" section
                         """)
                     else:
-                        st.error("❌ Error al guardar la sesión. Por favor, intenta de nuevo.")
+                        st.error("❌ Error saving session. Please try again.")
 
 
 def show_analytics(sessions):
-    """Mostrar análisis y visualizaciones."""
+    """Show analytics and visualizations."""
     
-    st.markdown("## 📊 Análisis y Visualizaciones")
+    st.markdown("## 📊 Analytics and Visualizations")
     
     if not sessions:
-        st.info("No hay datos para visualizar aún. Registra tu primera sesión para comenzar.")
+        st.info("No data to visualize yet. Register your first session to start.")
         return
     
-    # Layout de gráficos
+    # Layout of charts
     col1, col2 = st.columns(2)
     
     with col1:
