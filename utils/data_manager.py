@@ -304,9 +304,13 @@ def get_days_since_last_study() -> int:
             created_at_str = sessions_sorted[0].get('created_at')
             if created_at_str:
                 created_at = datetime.fromisoformat(created_at_str)
-                # Si created_at no tiene timezone, asumir que es compatible con datetime.now()
-                # (ambos UTC o ambos local server time)
-                now = datetime.now()
+                
+                # Obtener ahora en UTC si created_at tiene timezone, o naive si no
+                if created_at.tzinfo is not None:
+                    from datetime import timezone
+                    now = datetime.now(timezone.utc)
+                else:
+                    now = datetime.now()
                 
                 # Si la sesión fue creada hace menos de 12 horas, contarla como "hoy"
                 if (now - created_at).total_seconds() < 12 * 3600:
