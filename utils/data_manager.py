@@ -250,11 +250,14 @@ def get_current_streak() -> int:
     sessions_sorted = sorted(sessions, key=lambda x: x.get('date', ''), reverse=True)
     
     # Verificar si el último día estudiado es hoy
-    from datetime import date
-    today = date.today().isoformat()
-    
     # Si la última sesión no es de hoy, no hay racha
-    if sessions_sorted[0].get('date') != today:
+    # MODIFICACIÓN: Permitir que la última sesión sea de ayer para manejar diferencias de zona horaria
+    # (ej. usuario en UTC-4 estudia "hoy", servidor en UTC ya es "mañana")
+    from datetime import date
+    last_session_date = datetime.fromisoformat(sessions_sorted[0]['date']).date()
+    today_date = date.today()
+    
+    if (today_date - last_session_date).days > 1:
         return 0
     
     # Contar días consecutivos
