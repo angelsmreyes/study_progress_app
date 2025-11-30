@@ -168,36 +168,36 @@ def show_dashboard(sessions):
             
             with col1:
                 st.markdown(f"""
-                **📅 Día {last_session.get('day', '?')}/100** - {last_session.get('date', 'Sin fecha')}  
-                **📚 Tema:** {last_session.get('topic', 'Sin tema')}  
-                **🏷️ Categoría:** {last_session.get('category', 'Sin categoría')}  
-                **⏱️ Duración:** {last_session.get('duration', 'Sin duración')}
+                **📅 Day {last_session.get('day', '?')}/100** - {last_session.get('date', 'Sin fecha')}  
+                **📚 Topic:** {last_session.get('topic', 'Sin tema')}  
+                **🏷️ Category:** {last_session.get('category', 'Sin categoría')}  
+                **⏱️ Duration:** {last_session.get('duration', 'Sin duración')}
                 """)
                 
                 if last_session.get('daily_win'):
-                    st.markdown(f"**🏆 Victoria del día:** {last_session.get('daily_win')}")
+                    st.markdown(f"**🏆 Daily win:** {last_session.get('daily_win')}")
             with col2:
                 if last_session.get('practical_application'):
-                    st.info(f"💼 **Aplicación:** {last_session.get('practical_application')}")
+                    st.info(f"💼 **Practical application:** {last_session.get('practical_application')}")
     
-    # Gráfico de progreso
+    # Progress chart
     st.markdown("---")
-    st.markdown("### 📈 Tu Progreso en el Tiempo")
+    st.markdown("### 📈 Your Progress Over Time")
     progress_chart = visualizations.create_progress_chart(sessions)
     st.plotly_chart(progress_chart, width='stretch')
 
 
 def show_session_form():
-    """Mostrar formulario para nueva sesión o edición."""
+    """Show form for new session or editing."""
     
     is_edit = st.session_state.edit_session is not None
     session_to_edit = st.session_state.edit_session if is_edit else {}
     
-    title = "✏️ Editar Sesión" if is_edit else "➕ Registra tu Sesión de Estudio"
+    title = "✏️ Edit Session" if is_edit else "➕ Register your Study Session"
     st.markdown(f"## {title}")
     
     if is_edit:
-        st.info(f"Editando sesión del día {session_to_edit.get('day')}")
+        st.info(f"Editing session for day {session_to_edit.get('day')}")
     else:
         st.info("""
         📝 Completa este formulario para registrar tu sesión de estudio.
