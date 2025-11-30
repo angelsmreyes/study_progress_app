@@ -5,12 +5,12 @@ import json
 
 """
 Study Tracker 100 Days - Streamlit App
-Aplicación para tracking de sesiones de estudio durante 100 días
+Application for tracking study sessions during 100 days
 """
 
 
 def main():
-    """Función principal de la aplicación."""
+    """Main function of the application."""
     
     # Inicialización de session_state
     if 'show_form' not in st.session_state:
@@ -24,7 +24,7 @@ def main():
                 padding: 2rem; border-radius: 10px; margin-bottom: 2rem;'>
         <h1 style='color: white; text-align: center; margin: 0;'>📚 Study Tracker 100 Days</h1>
         <p style='color: white; text-align: center; margin: 0.5rem 0 0 0; opacity: 0.9;'>
-            Mejorando como Data Analyst | Physics Review | Preparación para Maestría
+            Getting better as Data Analyst | Physics Review | Preparing for Master's
         </p>
     </div>
     """, unsafe_allow_html=True)
@@ -34,12 +34,12 @@ def main():
     
     # Sidebar
     with st.sidebar:
-        st.markdown("### 🎯 Menú")
+        st.markdown("### 🎯 Menu")
         
         page = st.radio(
-            "Selecciona una sección:",
-            ["🏠 Dashboard", "➕ Nueva Sesión", "📊 Análisis y Visualizaciones", 
-             "📝 Historial", "🤝 Accountability Partner"],
+            "Select a section:",
+            ["🏠 Dashboard", "➕ New Session", "📊 Analysis and Visualizations", 
+             "📝 History", "🤝 Accountability Partner"],
             key='page_selector'
         )
         
@@ -49,32 +49,32 @@ def main():
         total_sessions = len(sessions)
         progress_percent = total_sessions / 100 * 100
         
-        st.markdown("### 📈 Progreso")
+        st.markdown("### 📈 Progress")
         st.progress(progress_percent / 100)
-        st.caption(f"{total_sessions}/100 días")
+        st.caption(f"{total_sessions}/100 days")
         
         if total_sessions > 0:
             streak = data_manager.get_current_streak()
             total_hours = data_manager.get_total_hours_studied()
             
-            st.markdown(f"**🔥 Racha actual:** {streak} días")
-            st.markdown(f"**⏱️ Total estudiado:** {total_hours}")
+            st.markdown(f"**🔥 Current streak:** {streak} days")
+            st.markdown(f"**⏱️ Total studied:** {total_hours}")
     
     # Router de páginas
     if page == "🏠 Dashboard":
         show_dashboard(sessions)
-    elif page == "➕ Nueva Sesión":
+    elif page == "➕ New Session":
         show_session_form()
-    elif page == "📊 Análisis y Visualizaciones":
+    elif page == "📊 Analysis and Visualizations":
         show_analytics(sessions)
-    elif page == "📝 Historial":
+    elif page == "📝 History":
         show_history(sessions)
     elif page == "🤝 Accountability Partner":
         show_accountability_partner()
 
 
 def show_dashboard(sessions):
-    """Mostrar dashboard principal con métricas y resumen."""
+    """Show main dashboard with metrics and summary."""
     
     st.markdown("## 🎯 Dashboard Principal")
     
@@ -135,32 +135,32 @@ def show_dashboard(sessions):
         days_since = data_manager.get_days_since_last_study()
         
         if days_since == 0:
-            st.success("✅ ¡Excelente! Has estudiado hoy. Mantén el ritmo.")
+            st.success("✅ ¡Excellent! You studied today. Keep it up.")
         elif days_since == 1:
-            st.warning("⚠️ Ayer no estudiaste. Vuelve a la rutina hoy.")
+            st.warning("⚠️ You didn't study yesterday. Return to the routine today.")
         elif days_since > 1:
-            st.error(f"🚨 Han pasado {days_since} días sin estudiar. Es momento de retomar el desafío.")
+            st.error(f"🚨 {days_since} days have passed since your last study. It's time to resume the challenge.")
     
-    # Mensajes motivacionales por hitos
+    # Messages motivational milestones
     if total_sessions == 10:
         st.balloons()
-        st.success("🎉 ¡Primer hito! Has completado 10 días. ¡Sigue así!")
+        st.success("🎉 ¡First milestone! You've completed 10 days. Keep it up!")
     elif total_sessions == 25:
         st.snow()
-        st.success("🎊 ¡25 días completados! Estás en el cuarto del camino.")
+        st.success("🎊 ¡25 days completed! You're in the fourth of the journey.")
     elif total_sessions == 50:
         st.balloons()
-        st.success("🏆 ¡50 días! ¡Haz llegado a la mitad del desafío!")
+        st.success("🏆 ¡50 days! You've reached the middle of the challenge!")
     elif total_sessions == 75:
         st.snow()
-        st.success("🔥 ¡75 días! Estás en la recta final.")
+        st.success("🔥 ¡75 days! You're in the final stretch.")
     elif total_sessions == 100:
         st.balloons()
-        st.success("🎉🎉🎉 ¡FELICIDADES! Has completado los 100 días. ¡Eres increíble!")
+        st.success("🎉🎉🎉 ¡Congratulations! You've completed 100 days. You're incredible!")    
     
-    # Última sesión
+    # Last session
     if sessions:
-        st.markdown("### 📝 Última Sesión Registrada")
+        st.markdown("### 📝 Last Session Registered")
         last_session = sessions[-1]
         
         with st.container():
@@ -305,12 +305,12 @@ def show_session_form():
             height=80
         )
         
-        # Próximos pasos
+        # Next steps
         next_steps = st.text_area(
-            "🚀 Próximos pasos",
+            "🚀 Next steps",
             value=session_to_edit.get('next_steps', ''),
-            placeholder="¿Qué planeas estudiar en tu próxima sesión? (opcional)",
-            help="Lo que te gustaría revisar o aprender después",
+            placeholder="¿Qué planeas estudiar en tu próxima sesión? (optional)",
+            help="What you want to review or learn next",
             height=80
         )
         
@@ -323,24 +323,24 @@ def show_session_form():
             height=80
         )
         
-        # Botón de envío
-        btn_label = "💾 Actualizar Sesión" if is_edit else "💾 Guardar Sesión"
+        # Submit button
+        btn_label = "💾 Update Session" if is_edit else "💾 Save Session"
         submitted = st.form_submit_button(
             btn_label,
-            width='stretch',
+            use_container_width=True,
             type="primary"
         )
         
         if submitted:
-            # Validar campos obligatorios
+            # Validate required fields
             if not topic:
-                st.error("❌ Por favor, completa el campo 'Tema estudiado'")
+                st.error("❌ Please complete the 'Topic studied' field")
             elif not duration:
-                st.error("❌ Por favor, completa el campo 'Duración'")
+                st.error("❌ Please complete the 'Duration' field")
             elif not daily_win:
-                st.error("❌ Por favor, completa el campo 'Victoria del día'")
+                st.error("❌ Please complete the 'Daily win' field")
             else:
-                # Crear objeto de sesión
+                # Create session object
                 session_data = {
                     'date': date_str,
                     'category': category,
@@ -357,7 +357,7 @@ def show_session_form():
                 }
                 
                 if is_edit:
-                    # Mantener ID y otros campos
+                    # Maintain ID and other fields
                     session_data['id'] = session_to_edit['id']
                     session_data['day'] = session_to_edit['day']
                     session_data['created_at'] = session_to_edit['created_at']
